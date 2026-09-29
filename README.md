@@ -1,95 +1,106 @@
 # Document Copilot
 
-An analyst desk for Driftwood Capital. Pick Apple, Microsoft, NVIDIA, Amazon, or Alphabet, read the latest 10-K, and get an answer that cites the passage or the XBRL fact it came from.
+An enterprise-grade AI document copilot and RAG (Retrieval-Augmented Generation) system built for financial research and document analysis. Document Copilot allows analysts to query extensive document corpora in natural language and receive grounded, citable responses.
 
-Live desk: [frontend-jn8z.vercel.app](https://frontend-jn8z.vercel.app). Sign in with any email.
+---
 
-## The client
+## 🚀 Key Features
 
-**Driftwood Capital** — fictional independent investment research firm. Their analysts spend half their week reading 10-Ks and 10-Qs before they can produce any original analysis. Document Copilot eats that intake work so they can skip straight to insight.
+- **Hybrid Retrieval System:** Combines vector embeddings (`pgvector`) with full-text keyword search for high-precision document retrieval.
+- **Source Citation:** Delivers responses linked directly to verifiable excerpts from source documents.
+- **Enterprise Tech Stack:** Powered by FastAPI, React + TypeScript, Supabase Postgres, and OpenAI API.
+- **Dataset Pipeline:** Built-in SEC EDGAR filing ingestion pipeline for processing 10-K and 10-Q financial documents.
 
-Full brief: [docs/client-brief.md](docs/client-brief.md)
+---
 
-## What runs today
+## 🛠️ Tech Stack
 
-| Layer | Choice |
-| ----- | ------ |
-| Backend | Python + FastAPI |
-| Frontend | Vite + React + TypeScript + Tailwind |
-| Database | SQLite (threads, messages, filing chunks) |
-| Retrieval | SQLite full-text search over Item 1, Item 1A, and Item 7 passages |
-| Figures | SEC XBRL company facts, cited by accession |
-| Auth | Local email session. Any email works on this desk |
-| Hosting | Vercel |
-| Answers | A writer over the retrieved passage. Set `OPENAI_API_KEY` to let `gpt-4o-mini` draft the same grounded reply |
+| Component | Technology |
+| :--- | :--- |
+| **Backend** | Python 3.12+, FastAPI, SQLAlchemy, Alembic |
+| **Frontend** | React, TypeScript, Vite |
+| **Database** | Supabase Postgres (`pgvector` + Full-Text Search) |
+| **Authentication**| Supabase Auth |
+| **AI / Embeddings**| OpenAI API (GPT-4 / Embeddings) |
+| **Package Manager**| `uv` (Backend), `pnpm` (Frontend) |
 
-[docs/architecture.md](docs/architecture.md) is the original target design (Supabase, pgvector, Railway). That design is not what this desk runs. There is no embedding index.
+---
 
-## Repo layout
+## 📂 Project Structure
 
 ```text
 document-copilot/
-├── AGENTS.md           # agent instructions (read first)
-├── README.md           # this file
-├── data/               # local corpus + download script (payloads gitignored)
-├── docs/
-│   └── client-brief.md # the client one-pager
-├── backend/            # FastAPI service
-└── frontend/           # React SPA (Vite)
+├── backend/            # FastAPI backend service & database models
+├── frontend/           # React single-page application (TypeScript + Vite)
+├── data/               # SEC filing downloader scripts and local data pipeline
+├── docs/               # Architecture specs, client brief, and setup guides
+│   ├── architecture.md
+│   └── guides/
+└── AGENTS.md           # Developer & AI Agent workflow conventions
 ```
 
-## Prerequisites
+---
 
-Install these before setting up `backend/` or `frontend/`:
+## 🏁 Getting Started
 
-| Tool | Version | Used for | Install |
-| ---- | ------- | -------- | ------- |
-| [Python](https://www.python.org/downloads/) | 3.12+ | Backend runtime | OS package manager or python.org |
-| [uv](https://docs.astral.sh/uv/getting-started/installation/) | latest | Backend deps + `data/download.py` | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
-| [Node.js](https://nodejs.org/) | 20+ (LTS) | Frontend toolchain | nodejs.org or `nvm install --lts` |
-| [pnpm](https://pnpm.io/installation) | latest | Frontend package manager | `corepack enable && corepack prepare pnpm@latest --activate` |
+### 1. Prerequisites
 
-No Supabase project or OpenAI key is required to run the desk. An [OpenAI API key](https://platform.openai.com/api-keys) is optional and only changes who writes the prose. The [Supabase guide](docs/guides/supabase-setup.md) belongs to the target design in `docs/architecture.md`.
+Ensure you have the following tools installed:
 
-## Running locally
+- **Python 3.12+** & [**uv** package manager](https://docs.astral.sh/uv/)
+- **Node.js 20+** & [**pnpm**](https://pnpm.io/)
+- **Supabase** account & project (Postgres + `pgvector`)
+- **OpenAI** API Key
 
-The desk runs without Supabase or an OpenAI key. Select Apple, Microsoft, NVIDIA, Amazon, or Alphabet. The latest 10-K passages are already loaded from SEC EDGAR (`backend/app/corpus/seed.json`), and annual figures for revenue, net income, operating income, EPS, cash, and debt come from the matching 10-K XBRL facts (`backend/app/corpus/financials.json`), with the prior year and the change beside them. Item 1A risks and the analyst brief each point back to a section and paragraph. Chat answers stay on the selected company: a filing question cites the passage, a figure cites the accession and EDGAR URL, and a question the corpus does not cover is refused. Set `OPENAI_API_KEY` in `backend/.env` (and optionally `OPENAI_MODEL`, default `gpt-4o-mini`) to have a model write the prose. Sign in with any email. That session stays on this machine.
+### 2. Environment Setup
 
-```bash
-# backend — from the repo root
-cd backend
-uv sync
-# without uv: pip install -r requirements.txt
-uv run uvicorn app.main:app --host 0.0.0.0 --port 43124
+1. **Backend Configuration:**
+   Copy `.env.example` in `backend/` to `.env` and configure your credentials:
+   ```bash
+   cp backend/.env.example backend/.env
+   ```
 
-# frontend — second terminal
-cd frontend
-pnpm install
-pnpm dev
-```
+2. **Frontend Configuration:**
+   Copy `.env.example` in `frontend/` to `.env` and configure your credentials:
+   ```bash
+   cp frontend/.env.example frontend/.env
+   ```
 
-Open [http://127.0.0.1:43123](http://127.0.0.1:43123). The Vite dev server proxies `/api` to the backend.
+### 3. Local Development
 
-Refresh the filing excerpts with `python backend/ingest/build_seed.py` (SEC requires a descriptive User-Agent; edit it at the top of that script). Restart the backend so it reloads an empty database, or delete `backend/document_copilot.db` first.
+- **Backend Setup & Launch:**
+  See [Backend Setup Guide](docs/guides/backend-setup.md) for full instructions.
+  ```bash
+  # Run from backend directory
+  uv sync
+  uv run uvicorn app.main:app --reload
+  ```
 
-`AUTH_MODE=supabase` is reserved for the hosted auth path in the architecture notes. The process refuses to start in that mode until the Supabase settings are present.
+- **Frontend Setup & Launch:**
+  See [Frontend Setup Guide](docs/guides/frontend-setup.md) for full instructions.
+  ```bash
+  # Run from frontend directory
+  pnpm install
+  pnpm dev
+  ```
 
-Setup guides:
+---
 
-- [Supabase](docs/guides/supabase-setup.md) — account, hosted project (dashboard or CLI)
-- [Backend](docs/guides/backend-setup.md)
-- [Frontend](docs/guides/frontend-setup.md)
+## 📊 Sample Data Ingestion (SEC Filings)
 
-Check the backend with `cd backend && uv run pytest && uv run ruff check .`. Check the frontend with `cd frontend && pnpm exec tsc -b --noEmit && pnpm lint`.
-
-## Sample SEC data
-
-Use the standalone downloader to fetch a small local 10-K sample from SEC EDGAR.
-Edit the params at the top of `data/download.py`, especially `USER_AGENT`, then run:
+To fetch sample 10-K filings from SEC EDGAR:
 
 ```bash
 uv run data/download.py
 ```
 
-By default this downloads the latest 5 10-K filings for AAPL, MSFT, NVDA, AMZN, and GOOGL into year folders under `data/downloads/` and writes a `manifest.json`.
-Downloaded files are gitignored; the `data/` folder itself stays in git for the script and notes.
+Downloaded filings are saved locally to `data/downloads/` along with a generated `manifest.json`.
+
+---
+
+## 📚 Documentation
+
+- [Client Brief](docs/client-brief.md)
+- [Architecture Overview](docs/architecture.md)
+- [Supabase Setup Guide](docs/guides/supabase-setup.md)
+
