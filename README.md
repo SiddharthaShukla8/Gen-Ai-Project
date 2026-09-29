@@ -1,68 +1,106 @@
 # Document Copilot
 
-An internal AI chatbot that lets analysts query a corpus of documents in plain English and get sourced, citable answers.
+An enterprise-grade AI document copilot and RAG (Retrieval-Augmented Generation) system built for financial research and document analysis. Document Copilot allows analysts to query extensive document corpora in natural language and receive grounded, citable responses.
 
-## The client
+---
 
-**Driftwood Capital** — fictional independent investment research firm. Their analysts spend half their week reading 10-Ks and 10-Qs before they can produce any original analysis. Document Copilot eats that intake work so they can skip straight to insight.
+## 🚀 Key Features
 
-Full brief: [docs/client-brief.md](docs/client-brief.md)
+- **Hybrid Retrieval System:** Combines vector embeddings (`pgvector`) with full-text keyword search for high-precision document retrieval.
+- **Source Citation:** Delivers responses linked directly to verifiable excerpts from source documents.
+- **Enterprise Tech Stack:** Powered by FastAPI, React + TypeScript, Supabase Postgres, and OpenAI API.
+- **Dataset Pipeline:** Built-in SEC EDGAR filing ingestion pipeline for processing 10-K and 10-Q financial documents.
 
-## Stack
+---
 
-| Layer              | Choice                                               |
-| ------------------ | ---------------------------------------------------- |
-| Backend            | Python + FastAPI                                     |
-| Frontend           | Vite + React SPA + TypeScript                        |
-| Database           | Supabase Postgres (users, chats, documents, chunks)  |
-| Migrations         | SQLAlchemy models + Alembic                          |
-| Retrieval          | Supabase `pgvector` + Postgres full-text search      |
-| Auth               | Supabase Auth (email only)                           |
-| Hosting            | Railway                                              |
-| LLM + embeddings   | OpenAI                                               |
+## 🛠️ Tech Stack
 
-## Repo layout
+| Component | Technology |
+| :--- | :--- |
+| **Backend** | Python 3.12+, FastAPI, SQLAlchemy, Alembic |
+| **Frontend** | React, TypeScript, Vite |
+| **Database** | Supabase Postgres (`pgvector` + Full-Text Search) |
+| **Authentication**| Supabase Auth |
+| **AI / Embeddings**| OpenAI API (GPT-4 / Embeddings) |
+| **Package Manager**| `uv` (Backend), `pnpm` (Frontend) |
+
+---
+
+## 📂 Project Structure
 
 ```text
 document-copilot/
-├── AGENTS.md           # agent instructions (read first)
-├── README.md           # this file
-├── data/               # local corpus + download script (payloads gitignored)
-├── docs/
-│   └── client-brief.md # the client one-pager
-├── backend/            # FastAPI service
-└── frontend/           # React SPA (Vite)
+├── backend/            # FastAPI backend service & database models
+├── frontend/           # React single-page application (TypeScript + Vite)
+├── data/               # SEC filing downloader scripts and local data pipeline
+├── docs/               # Architecture specs, client brief, and setup guides
+│   ├── architecture.md
+│   └── guides/
+└── AGENTS.md           # Developer & AI Agent workflow conventions
 ```
 
-## Prerequisites
+---
 
-Install these before setting up `backend/` or `frontend/`:
+## 🏁 Getting Started
 
-| Tool | Version | Used for | Install |
-| ---- | ------- | -------- | ------- |
-| [Python](https://www.python.org/downloads/) | 3.12+ | Backend runtime | OS package manager or python.org |
-| [uv](https://docs.astral.sh/uv/getting-started/installation/) | latest | Backend deps + `data/download.py` | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
-| [Node.js](https://nodejs.org/) | 20+ (LTS) | Frontend toolchain | nodejs.org or `nvm install --lts` |
-| [pnpm](https://pnpm.io/installation) | latest | Frontend package manager | `corepack enable && corepack prepare pnpm@latest --activate` |
+### 1. Prerequisites
 
-You also need accounts/keys for external services once the app is wired up. Start with [docs/guides/supabase-setup.md](docs/guides/supabase-setup.md) (account + project), then create an [OpenAI API key](https://platform.openai.com/api-keys) when the LLM layer is wired up.
+Ensure you have the following tools installed:
 
-## Running locally
+- **Python 3.12+** & [**uv** package manager](https://docs.astral.sh/uv/)
+- **Node.js 20+** & [**pnpm**](https://pnpm.io/)
+- **Supabase** account & project (Postgres + `pgvector`)
+- **OpenAI** API Key
 
-To be added during the build. Setup guides:
+### 2. Environment Setup
 
-- [Supabase](docs/guides/supabase-setup.md) — account, hosted project (dashboard or CLI)
-- [Backend](docs/guides/backend-setup.md)
-- [Frontend](docs/guides/frontend-setup.md)
+1. **Backend Configuration:**
+   Copy `.env.example` in `backend/` to `.env` and configure your credentials:
+   ```bash
+   cp backend/.env.example backend/.env
+   ```
 
-## Sample SEC data
+2. **Frontend Configuration:**
+   Copy `.env.example` in `frontend/` to `.env` and configure your credentials:
+   ```bash
+   cp frontend/.env.example frontend/.env
+   ```
 
-Use the standalone downloader to fetch a small local 10-K sample from SEC EDGAR.
-Edit the params at the top of `data/download.py`, especially `USER_AGENT`, then run:
+### 3. Local Development
+
+- **Backend Setup & Launch:**
+  See [Backend Setup Guide](docs/guides/backend-setup.md) for full instructions.
+  ```bash
+  # Run from backend directory
+  uv sync
+  uv run uvicorn app.main:app --reload
+  ```
+
+- **Frontend Setup & Launch:**
+  See [Frontend Setup Guide](docs/guides/frontend-setup.md) for full instructions.
+  ```bash
+  # Run from frontend directory
+  pnpm install
+  pnpm dev
+  ```
+
+---
+
+## 📊 Sample Data Ingestion (SEC Filings)
+
+To fetch sample 10-K filings from SEC EDGAR:
 
 ```bash
 uv run data/download.py
 ```
 
-By default this downloads the latest 5 10-K filings for AAPL, MSFT, NVDA, AMZN, and GOOGL into year folders under `data/downloads/` and writes a `manifest.json`.
-Downloaded files are gitignored; the `data/` folder itself stays in git for the script and notes.
+Downloaded filings are saved locally to `data/downloads/` along with a generated `manifest.json`.
+
+---
+
+## 📚 Documentation
+
+- [Client Brief](docs/client-brief.md)
+- [Architecture Overview](docs/architecture.md)
+- [Supabase Setup Guide](docs/guides/supabase-setup.md)
+
