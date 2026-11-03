@@ -98,8 +98,9 @@ Downloaded filings are saved locally to `data/downloads/` along with a generated
 
 ---
 
-## 📚 Documentation
+## 📚 Documentation & Career Guide
 
+- [Resume & Portfolio Guide](RESUME.md) — Tailored resume bullet points, architecture talking points, and interview Q&A
 - [Client Brief](docs/client-brief.md)
 - [Architecture Overview](docs/architecture.md)
 - [Supabase Setup Guide](docs/guides/supabase-setup.md)
